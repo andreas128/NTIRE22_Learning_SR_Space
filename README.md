@@ -104,6 +104,13 @@ SRFlow-DA: Super-Resolution Using Normalizing Flow with Deep
 - Improved Affine couplings
 
 
+### IMLE Method:
+[[Paper]](https://arxiv.org/pdf/2011.01926.pdf) [[Code]](https://github.com/niopeng/HyperRIM/tree/main/code) Generating Unobserved Alternatives
+
+- Based on Implicit Maximum Likelihood Estimation
+- Uses progressive Upscaling
+
+
 ## Challenge Rules
 
 To guide the research towards useful and generalizable techniques, submissions need to adhere to the following rules. All participants must submit code of their solution along with the final results.
