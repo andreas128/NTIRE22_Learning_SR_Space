@@ -17,10 +17,9 @@ To participate in this challenge, please sign up using the following link and cl
 Challenge participants can submit their **paper to this CVPR 2022 Workshop.**
 
 ## Tackling the ill-posed nature of Super-Resolution
+[![CVPR 2022 Challenge](https://user-images.githubusercontent.com/11280511/152827880-e6e2d831-be32-4225-bdd6-2edabaf08ac9.gif)
+](https://bit.ly/34E0rLB)
 
-[![CVPR 2022 Challenge](https://user-images.githubusercontent.com/11280511/152773938-68be3329-3160-4380-a35d-3c6a04e5a44c.gif)](https://bit.ly/34E0rLB)
-
- 
 Usually, super-resolution (SR) is trained using pairs of high- and low-resolution images. **Infinitely many high-resolution images can be downsampled to the same low-resolution image.** That means that the problem is ill-posed and cannot be inverted with a deterministic mapping. Instead, one can frame the SR problem as learning a stochastic mapping, capable of **sampling from the space of plausible high-resolution images given a low-resolution image**. This problem has been addressed in recent works [1, 2, 3]. The one-to-many stochastic formulation of the SR problem allows for a few potential advantages:
 * The development of more robust learning formulations that better accounts for the ill-posed nature of the SR problem.
 * Multiple predictions can be sampled and compared.  
