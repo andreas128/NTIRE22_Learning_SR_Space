@@ -104,12 +104,23 @@ SRFlow-DA: Super-Resolution Using Normalizing Flow with Deep
 - Improved Affine couplings
 
 
-### IMLE Method:
+### IMLE Method: FutureReference
 [[Paper]](https://arxiv.org/pdf/2011.01926.pdf) [[Code]](https://github.com/niopeng/HyperRIM/tree/main/code) Generating Unobserved Alternatives
 
 - Based on Implicit Maximum Likelihood Estimation
 - Uses progressive Upscaling
 
+### Most Diverse VAE Method: SR_DL
+[[Paper]](https://openaccess.thecvf.com/content_CVPRW_2020/papers/w31/Liu_Unsupervised_Real_Image_Super-Resolution_via_Generative_Variational_AutoEncoder_CVPRW_2020_paper.pdf) Variational AutoEncoder for Reference based Image Super-Resolution
+
+- Reference based
+- Components: VGG Encoder, Conditional Variational AutoEncoder, Image Decoder
+
+### Most Diverse GAN Method: SSS
+Flexible SR using Conditional Objective
+
+- Based on RRDB and SFT
+- Components: SR-, Conditioning Branch
 
 ## Challenge Rules
 
