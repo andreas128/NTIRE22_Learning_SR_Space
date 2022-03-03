@@ -179,11 +179,11 @@ To measure how much information is preserved in the super-resloved image from th
 
 | Date       | Event |
 | ---------- | ----  |
-| 2022.03.13 | Final test data release (inputs only) |
-| 2022.03.20 | test result submission deadline |
-| 2022.03.20 | fact sheet / code / model submission deadline |
-| 2022.04.01 | challenge paper submission deadline |
-| 2022.04.08 | camera-ready deadline |
+| 2022.03.23 | Final test data release (inputs only) |
+| 2022.03.30 | test result submission deadline |
+| 2022.03.30 | fact sheet / code / model submission deadline |
+| 2022.04.11 | challenge paper submission deadline |
+| 2022.04.19 | camera-ready deadline |
 | 2022.06.19 | workshop day |
 
 
