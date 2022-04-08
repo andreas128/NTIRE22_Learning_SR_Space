@@ -5,6 +5,7 @@ import sys
 import os
 import numpy as np
 import pandas as pd
+import scipy.signal
 
 import cv2
 from setuptools import glob
@@ -14,9 +15,6 @@ from imresize import imresize
 if True:
     sys.path.insert(0, "./PerceptualSimilarity")
     from lpips import lpips
-
-
-n_imgs = 100
 
 
 def fiFindByWildcard(wildcard):
@@ -53,10 +51,15 @@ def lpips_analysis(gt, srs, scale):
     for sr_img, sr in zip(sr_imgs, srs):
         print("   with SR", sr, sr_img.shape)
 
+    n_samples = len(sr_imgs)
+
     lpipses_sp = []
     lpipses_gl = []
-    lrpsnrs = []
-    n_samples = len(sr_imgs)
+
+    mses_sp = []
+    mses_gl = []
+
+    kernel = np.ones((16, 16)) / (16 * 16)
 
     for sample_idx in tqdm.tqdm(range(n_samples)):
         sr = sr_imgs[sample_idx]
@@ -64,46 +67,72 @@ def lpips_analysis(gt, srs, scale):
         h1, w1, _ = gt_img.shape
         sr = sr[:h1, :w1]
 
-        # h2, w2, _ = sr.shape
-        # gt_img = gt_img[:h1, :w1]
-
-        # assert abs(h1 - h2) < 2
-        # assert abs(w1 - w2) < 2
-
+        # LPIPS
         lpips_sp = loss_fn_alex_sp(2 * t(sr) - 1, 2 * t(gt_img) - 1)
         lpipses_sp.append(lpips_sp)
         lpipses_gl.append(lpips_sp.mean().item())
 
-        imgA_lr = imresize(sr, 1 / scale)
-        imgB_lr = imresize(gt_img, 1 / scale)
-        lrpsnr = psnr(imgA_lr, imgB_lr)
-        lrpsnrs.append(lrpsnr)
+        # MSE
+        mse_sp_rgb = ((sr * 1.0) - (gt_img * 1.0)) ** 2
+        assert mse_sp_rgb.shape[2] == 3
+        mse_sp = mse_sp_rgb.mean(axis=2)
+        mse_sp = scipy.signal.convolve2d(mse_sp, kernel)
+        mse_sp = torch.Tensor(mse_sp)
 
-    lpips_gl = np.min(lpipses_gl)
+        mses_sp.append(mse_sp)
+        mses_gl.append(mse_sp.mean())
 
-    results['LPIPS_mean'] = np.mean(lpipses_gl)
-    results['LRPSNR_worst'] = np.min(lrpsnrs)
-    results['LRPSNR_mean'] = np.mean(lrpsnrs)
+    for n in range(1, n_samples):
+        # LPIPS
+        lpips_gl = np.min(lpipses_gl[: n])
 
-    lpipses_stacked = torch.stack([l[0, 0, :, :] for l in lpipses_sp], dim=2)
+        results[f'LPIPS_mean_n{n}'] = np.mean(lpipses_gl[: n])
 
-    lpips_best_sp, _ = torch.min(lpipses_stacked, dim=2)
-    lpips_loc = lpips_best_sp.mean().item()
+        lpipses_stacked = torch.stack(
+            [l[0, 0, :, :] for l in lpipses_sp[: n]], dim=2)
 
-    score = (lpips_gl - lpips_loc) / lpips_gl * 100
+        lpips_best_sp, _ = torch.min(lpipses_stacked, dim=2)
 
-    results['score'] = score
+        lpips_loc = lpips_best_sp.mean().item()
+        results[f'LPIPS_best_loc_n{n}'] = lpips_loc
 
-    dprint(results)
+        lpips_diff = (lpips_gl - lpips_loc)
+        results[f'LPIPS_diff_n{n}'] = lpips_diff
+
+        score = lpips_diff / lpips_gl * 100
+
+        results[f'LPIPS_score_n{n}'] = score
+
+        # MSE
+        mse_gl = np.min(mses_gl[: n])
+
+        results[f'MSE_mean_n{n}'] = np.mean(mses_gl[: n])
+
+        mses_stacked = torch.stack(mses_sp[: n], dim=2)
+
+        mse_best_sp, _ = torch.min(mses_stacked, dim=2)
+
+        mse_loc = mse_best_sp.mean().item()
+        results[f'MSE_best_loc_n{n}'] = mse_loc
+
+        mse_diff = (mse_gl - mse_loc)
+        results[f'MSE_diff_n{n}'] = mse_diff
+
+        score = mse_diff / mse_gl * 100
+
+        results[f'MSE_score_n{n}'] = score
+
+        dprint(results)
 
     return results
 
 
-name, gt_dir, srs_dir, n_samples, scale = sys.argv[1:]
+name, gt_dir, srs_dir, n_samples, scale, n_max = sys.argv[1:]
 
 gt_dir = os.path.expanduser(gt_dir)
 srs_dir = os.path.expanduser(srs_dir)
 n_samples = int(n_samples)
+n_max = int(n_max)
 scale = int(scale)
 
 ########################################
@@ -118,7 +147,7 @@ srs_imgs = []
 
 print("Start evaluation")
 
-for img_idx in range(100):
+for img_idx in range(n_max):
     gt = os.path.expanduser(os.path.join(gt_dir, f'{901 + img_idx:04d}.png'))
 
     if gt in gt_imgs_raw:
@@ -154,15 +183,15 @@ loss_fn_alex_sp = lpips.LPIPS(spatial=True)
 
 results = []
 
-for img_idx in range(n_imgs):
+for img_idx in range(n_max):
     print(img_idx)
     results.append(lpips_analysis(gt_imgs[img_idx], srs_imgs[img_idx], scale))
 
 df = pd.DataFrame(results)
 df_mean = df.mean()
 
-df.to_csv(f"./{name}.csv")
-df_mean.to_csv(f"./{name}_mean.csv")
+df.to_csv(f"./{name}_full.csv")
+df_mean.to_csv(f"./{name}_full_mean.csv")
 
 print()
 print(df_mean.to_string())
