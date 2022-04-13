@@ -82,9 +82,14 @@ def lpips_analysis(gt, srs, scale):
         mses_sp.append(mse_sp)
         mses_gl.append(mse_sp.mean())
 
-    for n in range(1, n_samples):
+    select = list(range(n_samples))
+    for n in range(1, n_samples + 1):
+        np.random.shuffle(select)
+        select = select[:n]
+
         # LPIPS
-        lpips_gl = np.min(lpipses_gl[: n])
+        lpips_gl = np.min([l for idx, l in enumerate(
+            lpipses_gl[select]) if idx in select])
 
         results[f'LPIPS_mean_n{n}'] = np.mean(lpipses_gl[: n])
 
@@ -104,7 +109,8 @@ def lpips_analysis(gt, srs, scale):
         results[f'LPIPS_score_n{n}'] = score
 
         # MSE
-        mse_gl = np.min(mses_gl[: n])
+        mse_gl = np.min(
+            [m for idx, m in enumerate(mses_gl[: n]) if idx in select])
 
         results[f'MSE_mean_n{n}'] = np.mean(mses_gl[: n])
 
