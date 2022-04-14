@@ -46,6 +46,8 @@ def lpips_analysis(gt, srs, scale):
     gt_img = gt_img[:(h//8)*8, :(w//8)*8]
     print("Compare GT", gt, gt_img.shape)
 
+    np.random.shuffle(srs)
+
     sr_imgs = [imread(sr) for sr in srs]
 
     for sr_img, sr in zip(sr_imgs, srs):
@@ -82,16 +84,11 @@ def lpips_analysis(gt, srs, scale):
         mses_sp.append(mse_sp)
         mses_gl.append(mse_sp.mean())
 
-    select = list(range(n_samples))
     for n in range(1, n_samples + 1):
-        np.random.shuffle(select)
-        select = select[:n]
-
         # LPIPS
-        lpips_gl = np.min([l for idx, l in enumerate(
-            lpipses_gl[select]) if idx in select])
+        lpips_gl = np.min(lpipses_gl[:n])
 
-        results[f'LPIPS_mean_n{n}'] = np.mean(lpipses_gl[: n])
+        results[f'LPIPS_mean_n{n}'] = np.mean(lpipses_gl[:n])
 
         lpipses_stacked = torch.stack(
             [l[0, 0, :, :] for l in lpipses_sp[: n]], dim=2)
@@ -109,10 +106,9 @@ def lpips_analysis(gt, srs, scale):
         results[f'LPIPS_score_n{n}'] = score
 
         # MSE
-        mse_gl = np.min(
-            [m for idx, m in enumerate(mses_gl[: n]) if idx in select])
+        mse_gl = np.min(mses_gl[:n])
 
-        results[f'MSE_mean_n{n}'] = np.mean(mses_gl[: n])
+        results[f'MSE_mean_n{n}'] = np.mean(mses_gl[:n])
 
         mses_stacked = torch.stack(mses_sp[: n], dim=2)
 
